@@ -2,6 +2,7 @@ import socket
 import pathlib
 import binascii
 import os
+import requests
 
 from functools import reduce
 from operator import add
@@ -14,18 +15,26 @@ class PayloadGenerator:
 
     register = Register()
 
-    def __init__(self, target_addr, forgery_addr, save_path='./payloads', payload_filename=None):
+    def __init__(self, target_addr, forgery_addr=None, save_path='./payloads', payload_filename=None):
         self.target_addr = target_addr
         self.forgery_addr = forgery_addr
         self.ip_formats_path = str(pathlib.Path(__file__).parent.absolute()) + '/ip_formats.txt'
         self.save_path = save_path
         self.payload_filename = payload_filename
 
-        try:
-            self.forgery_ip = self.get_ip_from_addr(self.forgery_addr)
-        except socket.gaierror:
-            self.logger.warning('Wrong forgery address format or DNS problem')
-            self.forgery_ip = None
+        if self.forgery_addr is None:
+            self.forgery_ip = requests.get('https://checkip.amazonaws.com').text.strip()
+            try:
+                self.forgery_addr = self.get_addr_from_ip(self.forgery_ip)
+            except socket.gaierror:
+                self.logger.warning('DNS problem or there is no domain name connected with own public IP')
+                self.forgery_addr
+        else:
+            try:
+                self.forgery_ip = self.get_ip_from_addr(self.forgery_addr)
+            except socket.gaierror:
+                self.logger.warning('Wrong forgery address format or DNS problem')
+                self.forgery_ip = None
 
         if not os.path.isdir(self.save_path):
             os.mkdir(self.save_path)
