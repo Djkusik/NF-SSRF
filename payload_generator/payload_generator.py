@@ -1,9 +1,11 @@
 import socket
 import pathlib
 import binascii
+import os
 
 from functools import reduce
 from operator import add
+from datetime import datetime
 from common.logger import get_logger
 from payload_generator.register import Register
 
@@ -12,16 +14,21 @@ class PayloadGenerator:
 
     register = Register()
 
-    def __init__(self, target_addr, forgery_addr):
+    def __init__(self, target_addr, forgery_addr, save_path='./payloads', payload_filename=None):
         self.target_addr = target_addr
         self.forgery_addr = forgery_addr
         self.ip_formats_path = str(pathlib.Path(__file__).parent.absolute()) + '/ip_formats.txt'
+        self.save_path = save_path
+        self.payload_filename = payload_filename
 
         try:
             self.forgery_ip = self.get_ip_from_addr(self.forgery_addr)
         except socket.gaierror:
             self.logger.warning('Wrong forgery address format or DNS problem')
             self.forgery_ip = None
+
+        if not os.path.isdir(self.save_path):
+            os.mkdir(self.save_path)
 
         # self.logger = get_logger()
 
@@ -36,12 +43,16 @@ class PayloadGenerator:
 
         for func in self.register:
             forgery_formats += func(self, self.forgery_ip)
-        
-        print(forgery_formats)
+        forgery_formats += [self.add_protocol(protocol, addr) for addr in forgery_formats for protocol in ['http', 'https']]
+
+        return forgery_formats
+
+    def add_protocol(self, protocol, addr):
+        return protocol + '://' + addr
 
     @register
     def ip_to_int(self, ip):
-        return [reduce(add, [ int(octet) * (256 ** i) for i, octet in enumerate(reversed(ip.split('.'))) ])]
+        return [str(reduce(add, [ int(octet) * (256 ** i) for i, octet in enumerate(reversed(ip.split('.'))) ]))]
 
     @register
     def ip_to_octal(self, ip):
@@ -90,6 +101,29 @@ class PayloadGenerator:
     def octet_to_dot(self, ip, octet):
         return ip.split('.')[octet - 1]
 
-    
-    
+    def save_to_file(self, payloads):
+        full_path = self.get_fullpath()
+        with open(full_path, 'w+') as f:
+            for payload in payloads:
+                f.write(payload + '\n')
+
+    def get_fullpath(self):
+        now = datetime.now()
+        today_folder = self.get_today_folder(now)
+
+        if self.payload_filename is not None:
+            return f"{today_folder}/{self.payload_filename}"
+        else:
+            return f"{today_folder}/{now.strftime('%H%M%S_payloads.txt')}"
+
+    def get_today_folder(self, now):
+        today_folder = f"{self.save_path}/{now.strftime('%Y%m%d')}"
+        if not os.path.isdir(today_folder):
+            os.mkdir(today_folder)
+        return today_folder
+
+    def run(self):
+        forgery_formats = self.create_every_ip_format()
+        self.save_to_file(forgery_formats)
+
 
