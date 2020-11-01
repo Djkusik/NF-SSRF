@@ -23,7 +23,7 @@ def disable_flask_banner():
 
 def print_fire(name, domain, payload, headers):
     domain = domain if domain else 'Not specified'
-    print(f'[*] Payload Fired on: {name}', f'Domain: {domain}', f'Payload: {payload}', f'Headers: {headers}', sep='\n\n[*] ')
+    print(f'[*] Payload Fired on: {name}', f'Domain: {domain}', f'Payload: {payload}', f'Headers: {headers}', sep='\n[*] ')
 
 @app.route("/<target_name>/<payload>")
 def hello(target_name, payload):

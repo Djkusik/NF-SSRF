@@ -3,7 +3,7 @@ from server import db
 
 class Target(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
+    name = db.Column(db.String(80), nullable=False, unique=True)
     domain = db.Column(db.String(80), nullable=True)
 
     def __repr__(self):
