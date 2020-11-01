@@ -27,12 +27,20 @@ def print_fire(name, domain, payload, headers):
 
 @app.route("/<target_name>/<payload>")
 def hello(target_name, payload):
-    try:
-        target = Target.query.filter_by(name=target_name).first()
-        print_fire(target.name, target.domain, payload, request.headers)
-    except KeyError:
-        return 'Target name not found', 404
+    target = Target.query.filter_by(name=target_name).first()
+    if target is None:
+        return page_not_found(None)
+        # return 'Target name not found', 404
+    fire = Fire(payload=payload, headers=str(request.headers), target=target)
+    db.session.add(fire)
+    db.session.commit()
+    print_fire(target.name, target.domain, payload, request.headers)
     return target.name
+
+@app.errorhandler(404)
+def page_not_found(e):
+    print(f'[*] Unknown request.\n[*] Path: {request.path}\n[*] Headers: {request.headers}')
+    return 'Unknown address', 404
 
 def start_listener(port='8888', address='127.0.0.1'):
     disable_flask_banner()
