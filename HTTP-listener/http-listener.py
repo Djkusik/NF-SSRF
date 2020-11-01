@@ -19,6 +19,7 @@ def show_fires(last=25):
     print('[*][*] Fires')
     for fire in fires:
         print_fire(fire.target.name, fire.target.domain, fire.payload, fire.headers)
+    return fires
 
 def show_targets(last=25):
     targets = Target.query.limit(last).all()
@@ -26,14 +27,10 @@ def show_targets(last=25):
     for target in targets:
         fires = len(Fire.query.filter_by(target=target).all())
         print(f'[*] Target name: {target.name}\n[*] Target domain: {target.domain}\n[*] Fires: {fires}')
+    return targets
 
 
-
-if __name__ == "__main__":
-    args = create_parser()
-    name = args.target_name
-    domain = args.target_domain
-
+def create_target(name, domain):
     if name is not None:
         target = Target(name=name, domain=domain)
         try:
@@ -43,6 +40,14 @@ if __name__ == "__main__":
             # name must be unique
             db.session.rollback()
             print(f'[*] target with name {name} is already present')
+
+
+if __name__ == "__main__":
+    args = create_parser()
+    name = args.target_name
+    domain = args.target_domain
+
+    create_target(name, domain)
 
     
     if args.show_fires:
