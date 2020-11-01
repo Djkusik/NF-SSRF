@@ -1,0 +1,3 @@
+hex,oct,int,dot
+dot,int,oct,hex
+int,dot,hex,oct
