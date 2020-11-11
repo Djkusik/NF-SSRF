@@ -121,10 +121,10 @@ def create_parser():
     return args
 
 
-def start_server(domain, ip_addresses, ttl=0, port=53):
+def start_server(domain, ip_address, ttl=0, port=53):
     print("Starting nameserver...")
     global D
-    D = Domain(domain, ip_addresses, ttl)
+    D = Domain(domain, ip_address, ttl)
     
     server = socketserver.ThreadingUDPServer(('', port), UDPRequestHandler)
 

@@ -4,14 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///listeners.sqlite'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-from models import Target, Fire
-db.create_all()
-
 def disable_flask_logging():
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
@@ -21,20 +13,22 @@ def disable_flask_banner():
     cli.show_server_banner = lambda *x: None
 
 
-def print_fire(name, domain, payload, headers):
+def print_fire(date, name, domain, fire_type, payload, headers):
     domain = domain if domain else 'Not specified'
-    print(f'[*] Payload Fired on: {name}', f'Domain: {domain}', f'Payload: {payload}', f'Headers: {headers}', sep='\n[*] ')
+    print(f'[*] Payload Fired on: {name}', f'Date: {date}', f'Domain: {domain}', f'Type: {fire_type}', f'Payload: {payload}', f'Headers: {headers}', sep='\n[*] ', end='\n\n')
 
 @app.route("/<target_name>/<payload>")
 def hello(target_name, payload):
+    from models import Target, Fire
+    from db import db
     target = Target.query.filter_by(name=target_name).first()
     if target is None:
         return page_not_found(None)
         # return 'Target name not found', 404
-    fire = Fire(payload=payload, headers=str(request.headers), target=target)
+    fire = Fire(payload=payload, headers=str(request.headers), target=target, dns_fire=False)
     db.session.add(fire)
     db.session.commit()
-    print_fire(target.name, target.domain, payload, request.headers)
+    print_fire(target.name, target.domain, 'HTTP', payload, request.headers)
     return target.name
 
 @app.errorhandler(404)

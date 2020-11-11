@@ -1,5 +1,5 @@
 from datetime import datetime
-from server import db
+from db import db
 
 class Target(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -14,6 +14,7 @@ class Fire(db.Model):
     payload = db.Column(db.Text, nullable=False)
     headers = db.Column(db.Text, nullable=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    dns_fire = db.Column(db.Boolean, nullable=True)
 
     target_id = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=False)
     target = db.relationship('Target', backref=db.backref('targets', lazy=True))

@@ -18,6 +18,9 @@ except ImportError:
     print("Missing dependency dnslib: <https://pypi.python.org/pypi/dnslib>. Please install it with `pip`.")
     sys.exit(2)
 
+from models import Fire, Target
+from db import db
+
 # a global domain object, that will be initialized with values later
 D = None
 
@@ -42,6 +45,22 @@ class Domain():
         return self.domain
 
 
+def print_fire(name, domain, fire_type, payload):
+    domain = domain if domain else 'Not specified'
+    print(f'[*] Payload Fired on: {name}', f'Domain: {domain}', f'Type: {fire_type}', f'Payload: {payload}', sep='\n[*] ')
+
+
+def register_fire(target_name, payload):
+    target = Target.query.filter_by(name=target_name).first()
+    if target is None:
+        return None
+        # return 'Target name not found', 404
+    fire = Fire(payload=payload, target=target, dns_fire=True)
+    db.session.add(fire)
+    db.session.commit()
+    print_fire(target.name, target.domain, 'DNS', payload)
+
+
 def dns_response(data):
     request = DNSRecord.parse(data)
 
@@ -60,7 +79,7 @@ def dns_response(data):
         if '.' in payload:
             target = payload.split('.')[-1]
             payload = '.'.join(payload.split('.')[:-1])
-            print(payload, target)
+            register_fire(target, payload)
         else:
             print(payload)
 
@@ -123,10 +142,10 @@ def create_parser():
     return args
 
 
-def start_server(domain, ip_addresses, ttl=0, port=53):
+def start_server(domain, ip_address='127.0.0.1', ttl=0, port=53):
     print("Starting nameserver...")
     global D
-    D = Domain(domain, ip_addresses, ttl)
+    D = Domain(domain, ip_address, ttl)
     
     server = socketserver.ThreadingUDPServer(('', port), UDPRequestHandler)
 
