@@ -45,9 +45,9 @@ class Domain():
         return self.domain
 
 
-def print_fire(name, domain, fire_type, payload):
+def print_fire(date, name, domain, fire_type, payload):
     domain = domain if domain else 'Not specified'
-    print(f'[*] Payload Fired on: {name}', f'Domain: {domain}', f'Type: {fire_type}', f'Payload: {payload}', sep='\n[*] ')
+    print(f'[*] Payload Fired on: {name}', f'Date: {date}', f'Domain: {domain}', f'Type: {fire_type}', f'Payload: {payload}', sep='\n[*] ')
 
 
 def register_fire(target_name, payload):
@@ -58,7 +58,7 @@ def register_fire(target_name, payload):
     fire = Fire(payload=payload, target=target, dns_fire=True)
     db.session.add(fire)
     db.session.commit()
-    print_fire(target.name, target.domain, 'DNS', payload)
+    print_fire(fire.date.strftime("%Y-%m-%d %H:%M"), target.name, target.domain, 'DNS', payload)
 
 
 def dns_response(data):

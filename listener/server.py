@@ -28,7 +28,7 @@ def hello(target_name, payload):
     fire = Fire(payload=payload, headers=str(request.headers), target=target, dns_fire=False)
     db.session.add(fire)
     db.session.commit()
-    print_fire(target.name, target.domain, 'HTTP', payload, request.headers)
+    print_fire(fire.date.strftime("%Y-%m-%d %H:%M"), target.name, target.domain, 'HTTP', payload, request.headers)
     return target.name
 
 @app.errorhandler(404)
