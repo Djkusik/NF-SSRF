@@ -5,7 +5,7 @@ from server import app
 
 targets = {}
 
-create_db(app)
+db = create_db(app)
 from models import Target, Fire
 
 from dnslistener import start_server as startdns
