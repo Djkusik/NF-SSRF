@@ -16,7 +16,7 @@ def log_level(val):
 
 def setup_logger(level=logging.INFO, filename=None):
     global logger
-    logger = logging.getLogger('cors')
+    logger = logging.getLogger('ssrf')
     formatter = logging.Formatter('%(asctime)s::%(levelname)s:: %(message)s')
     handlers = []
 
