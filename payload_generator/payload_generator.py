@@ -17,15 +17,15 @@ class PayloadGenerator:
 
     register = Register()
 
-    def __init__(self, target_addr, forgery_addr=None, save_path='./payloads', payload_filename=None):
+    def __init__(self, target_addr, forgery_addr=None, save_path='./payloads', payload_filename=None, protocols=['http','https','dict'], ports=['22', '80', '443']):
         self.target_addr = target_addr
         self.forgery_addr = forgery_addr
         self.save_path = save_path
         self.payload_filename = payload_filename
         self.logger = get_logger()
 
-        self.protocols = ['http', 'https', 'dict']
-        self.ports = ['22', '80', '443']
+        self.protocols = protocols
+        self.ports = ports
         self.ip_formats_path = str(pathlib.Path(__file__).parent.absolute()) + '/resources/ip_formats.txt'
         self.localhost_formats_path = str(pathlib.Path(__file__).parent.absolute()) + '/resources/localhost_formats.txt'
         self.format_strings_path = str(pathlib.Path(__file__).parent.absolute()) + '/resources/format_strings.txt'
@@ -114,10 +114,18 @@ class PayloadGenerator:
 
     @register
     def create_nipio_format(self):
-        if self.forgery_addr is not None:
-            return [self.forgery_addr + '127.0.0.1.nip.io', self.forgery_ip + '127.0.0.1.nip.io']
+        if self.target_addr is not None:
+            return [
+                self.target_addr + '.127.0.0.1.nip.io', 
+                self.target_ip + '.127.0.0.1.nip.io',
+                self.target_addr + '.' + self.forgery_ip + '.nip.io',
+                self.target_ip + '.' + self.forgery_ip + '.nip.io'
+            ]
         else:
-            return [self.forgery_ip + '127.0.0.1.nip.io']
+            return [
+                self.target_ip + '.127.0.0.1.nip.io',
+                self.target_ip + '.' + self.forgery_ip + '.nip.io'
+            ]
 
     @register
     def add_localhost_formats(self):
